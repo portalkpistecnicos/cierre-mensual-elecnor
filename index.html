@@ -349,6 +349,11 @@
         <div class="detail-panel" id="infanciaDetail"></div>
       </div>
     </div>
+    <div class="card" style="margin-top:18px;">
+      <h3>Claves de cierre más frecuentes</h3>
+      <ol class="ranklist" id="infanciaCausas"></ol>
+      <div class="note">Top 5 de 66 casos infancia identificados en el archivo fuente P22 (rmdy_clave_cierre, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 64 por redondeo de alcance, no afecta el ranking.</div>
+    </div>
   </section>
 
   <!-- ================= REITERADAS (P23) ================= -->
@@ -369,6 +374,11 @@
         <select class="agency-select" id="reiteradasSelect"></select>
         <div class="detail-panel" id="reiteradasDetail"></div>
       </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <h3>Claves de cierre más frecuentes</h3>
+      <ol class="ranklist" id="reiteradasCausas"></ol>
+      <div class="note">Top 5 de 91 casos reiterados identificados en el archivo fuente P23 (rdy_prd_cat_nivel_2_sol, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 73 por redondeo de alcance, no afecta el ranking.</div>
     </div>
   </section>
 
@@ -484,6 +494,13 @@ const DATA = {
       {nombre:"Viña del Mar", infancia:59, base:1830, tasa:3.22},
       {nombre:"Valparaíso", infancia:1, base:1176, tasa:0.09},
       {nombre:"San Antonio", infancia:4, base:475, tasa:0.84}
+    ],
+    causas: [
+      {codigo:"952", nombre:"Cliente no permite revisar", valor:17},
+      {codigo:"A19", nombre:"Cambio conector FO", valor:9},
+      {codigo:"F52", nombre:"Acometida FTTX", valor:8},
+      {codigo:"H01", nombre:"Reparación CTO", valor:7},
+      {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:5}
     ]
   },
   reiteradas: {
@@ -492,6 +509,13 @@ const DATA = {
       {nombre:"Viña del Mar", reiteradas:63, base:1319, tasa:4.78, meta:3.20},
       {nombre:"Valparaíso", reiteradas:4, base:782, tasa:0.51, meta:2.50},
       {nombre:"San Antonio", reiteradas:6, base:283, tasa:2.12, meta:4.00}
+    ],
+    causas: [
+      {codigo:"952", nombre:"Cliente no permite revisar", valor:19},
+      {codigo:"F52", nombre:"Acometida FTTX", valor:15},
+      {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:12},
+      {codigo:"F56", nombre:"Accesorios FTTX", valor:9},
+      {codigo:"H01", nombre:"Reparación CTO", valor:6}
     ]
   },
   velocidad: {
@@ -688,6 +712,18 @@ function renderStack(containerId, segments, opts){
   el.innerHTML = `<div class="stackbar">${bar}</div><div class="stack-legend">${legend}</div>`;
 }
 
+/* ---------------- Top-N ranked causes (shared by Infancia / Reiteradas) ---------------- */
+function renderCausas(containerId, causas){
+  const max = Math.max(...causas.map(c=>c.valor));
+  document.getElementById(containerId).innerHTML = causas.map((c,i)=>`
+    <li>
+      <span class="rk">${i+1}</span>
+      <span class="nm" title="${c.codigo} · ${c.nombre}">${c.codigo} · ${c.nombre}</span>
+      <span class="val">${fmt(c.valor)}</span>
+      <div class="rank-bar"><i style="width:${(c.valor/max*100).toFixed(1)}%"></i></div>
+    </li>`).join('');
+}
+
 /* ---------------- INFANCIA (P22) ---------------- */
 function renderInfancia(){
   const d = DATA.infancia;
@@ -713,6 +749,7 @@ function renderInfancia(){
   }
   sel.addEventListener('change', e => showAg(e.target.value));
   showAg(0);
+  renderCausas('infanciaCausas', d.causas);
 }
 
 /* ---------------- REITERADAS (P23) ---------------- */
@@ -740,6 +777,7 @@ function renderReiteradas(){
   }
   sel.addEventListener('change', e => showAg(e.target.value));
   showAg(0);
+  renderCausas('reiteradasCausas', d.causas);
 }
 
 /* ---------------- VELOCIDAD ---------------- */
