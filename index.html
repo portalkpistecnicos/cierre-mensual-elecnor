@@ -492,6 +492,18 @@
         <ol class="ranklist" id="produccionRank"></ol>
       </div>
     </div>
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="card">
+        <h3>Quiebres &middot; causales más frecuentes</h3>
+        <div class="stat-row" id="quiebreStats"></div>
+        <ol class="ranklist" id="quiebreCausas"></ol>
+      </div>
+      <div class="card">
+        <h3>Técnicos con más quiebres</h3>
+        <ol class="ranklist" id="quiebreTecnicos"></ol>
+        <div class="note">Un quiebre no siempre es responsabilidad del técnico: el 79,4% son de origen <b>comercial</b> (cliente no cumple cita, casa cerrada, desistimiento), 9,8% <b>técnico</b> y 10,9% sin clasificar. Este ranking cuenta todos los quiebres registrados a nombre del técnico, sin distinguir causa.</div>
+      </div>
+    </div>
   </section>
 
   <div class="footer">Cierre Mes Agosto 2026 &middot; ELECNOR Gerencia Norte &middot; Fuentes: TOA, Maestro Comercial, Backlog Instala, Baremos.xlsx
@@ -616,7 +628,24 @@ const DATA = {
       {nombre:"Juan Carlos España Guerrero", valor:2396.28},
       {nombre:"Ramón Vargas Fontecha", valor:2385.84},
       {nombre:"Samuel Valenzuela", valor:57.79}
-    ]
+    ],
+    quiebres: {
+      total: 2128, totalFilas: 7370,
+      causas: [
+        {codigo:"918", nombre:"Casa cerrada, sin contacto cliente", valor:666},
+        {codigo:"Q11", nombre:"Cliente no cumplió cita", valor:607},
+        {codigo:"Q07", nombre:"Cliente desiste por razones personales", valor:115},
+        {codigo:"Q15", nombre:"Cliente posterga instalación", valor:112},
+        {codigo:"Q46", nombre:"Cliente desea producto en otra dirección", valor:97}
+      ],
+      tecnicos: [
+        {nombre:"Bastián Ignacio Ríos Madrid", valor:78},
+        {nombre:"Patricio Canales Geve", valor:73},
+        {nombre:"Jonathan Ricardo Henríquez Venegas", valor:70},
+        {nombre:"José Manuel Sepúlveda Rojas", valor:67},
+        {nombre:"Alejandro Sebastián Cisternas Marín", valor:65}
+      ]
+    }
   }
 };
 
@@ -929,6 +958,14 @@ function renderProduccion(){
       <div class="rank-bar"><i style="width:${(t.valor/maxTec*100).toFixed(1)}%"></i></div>
     </li>`).join('');
   document.getElementById('produccionRank').innerHTML = rankHtml;
+
+  const q = p.quiebres;
+  document.getElementById('quiebreStats').innerHTML = `
+    <div class="stat-box"><div class="n">${fmt(q.total)}</div><div class="l">Actividades con quiebre</div></div>
+    <div class="stat-box"><div class="n">${fmtPct(100*q.total/q.totalFilas)}</div><div class="l">% del total</div></div>
+  `;
+  renderCausas('quiebreCausas', q.causas);
+  renderOfensores('quiebreTecnicos', q.tecnicos);
 }
 
 /* ---------------- Nav / scrollspy / theme ---------------- */
