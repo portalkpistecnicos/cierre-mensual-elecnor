@@ -349,10 +349,17 @@
         <div class="detail-panel" id="infanciaDetail"></div>
       </div>
     </div>
-    <div class="card" style="margin-top:18px;">
-      <h3>Claves de cierre más frecuentes</h3>
-      <ol class="ranklist" id="infanciaCausas"></ol>
-      <div class="note">Top 5 de 66 casos infancia identificados en el archivo fuente P22 (rmdy_clave_cierre, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 64 por redondeo de alcance, no afecta el ranking.</div>
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="card">
+        <h3>Claves de cierre más frecuentes</h3>
+        <ol class="ranklist" id="infanciaCausas"></ol>
+        <div class="note">Top 5 de 66 casos infancia identificados en el archivo fuente P22 (rmdy_clave_cierre, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 64 por redondeo de alcance, no afecta el ranking.</div>
+      </div>
+      <div class="card">
+        <h3>Técnicos más ofensores</h3>
+        <ol class="ranklist" id="infanciaOfensores"></ol>
+        <div class="note">Técnico que cerró la reparación asociada al caso de infancia (rmdy_nombre_tecnico), no necesariamente quien hizo la instalación original.</div>
+      </div>
     </div>
   </section>
 
@@ -375,10 +382,17 @@
         <div class="detail-panel" id="reiteradasDetail"></div>
       </div>
     </div>
-    <div class="card" style="margin-top:18px;">
-      <h3>Claves de cierre más frecuentes</h3>
-      <ol class="ranklist" id="reiteradasCausas"></ol>
-      <div class="note">Top 5 de 91 casos reiterados identificados en el archivo fuente P23 (rdy_prd_cat_nivel_2_sol, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 73 por redondeo de alcance, no afecta el ranking.</div>
+    <div class="grid-2" style="margin-top:18px;">
+      <div class="card">
+        <h3>Claves de cierre más frecuentes</h3>
+        <ol class="ranklist" id="reiteradasCausas"></ol>
+        <div class="note">Top 5 de 91 casos reiterados identificados en el archivo fuente P23 (rdy_prd_cat_nivel_2_sol, ya excluidos los códigos 913/F20/F23/561/A12/B01/B36/I50) — base ligeramente distinta al total oficial de 73 por redondeo de alcance, no afecta el ranking.</div>
+      </div>
+      <div class="card">
+        <h3>Técnicos más ofensores</h3>
+        <ol class="ranklist" id="reiteradasOfensores"></ol>
+        <div class="note">Técnico que atendió la reparación reiterada (toa_piv_nombre_tecnico).</div>
+      </div>
     </div>
   </section>
 
@@ -501,6 +515,13 @@ const DATA = {
       {codigo:"F52", nombre:"Acometida FTTX", valor:8},
       {codigo:"H01", nombre:"Reparación CTO", valor:7},
       {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:5}
+    ],
+    ofensores: [
+      {nombre:"Cristian Nicolás Serrano Vellagas", valor:6},
+      {nombre:"Jair Jesús Valencia Díaz", valor:5},
+      {nombre:"Héctor José Ortiz Márquez", valor:5},
+      {nombre:"Juan José Marcano González", valor:4},
+      {nombre:"Héctor David Ávalos Rupcich", valor:4}
     ]
   },
   reiteradas: {
@@ -516,6 +537,13 @@ const DATA = {
       {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:12},
       {codigo:"F56", nombre:"Accesorios FTTX", valor:9},
       {codigo:"H01", nombre:"Reparación CTO", valor:6}
+    ],
+    ofensores: [
+      {nombre:"Cristian Nicolás Serrano Vellagas", valor:9},
+      {nombre:"Patricio Canales Geve", valor:6},
+      {nombre:"José Manuel Sepúlveda Rojas", valor:5},
+      {nombre:"Alejandro Sebastián Cisternas Marín", valor:5},
+      {nombre:"Franco Josué Díaz Núñez", valor:5}
     ]
   },
   velocidad: {
@@ -724,6 +752,17 @@ function renderCausas(containerId, causas){
     </li>`).join('');
 }
 
+function renderOfensores(containerId, ofensores){
+  const max = Math.max(...ofensores.map(o=>o.valor));
+  document.getElementById(containerId).innerHTML = ofensores.map((o,i)=>`
+    <li>
+      <span class="rk">${i+1}</span>
+      <span class="nm" title="${o.nombre}">${o.nombre}</span>
+      <span class="val">${fmt(o.valor)}</span>
+      <div class="rank-bar"><i style="width:${(o.valor/max*100).toFixed(1)}%"></i></div>
+    </li>`).join('');
+}
+
 /* ---------------- INFANCIA (P22) ---------------- */
 function renderInfancia(){
   const d = DATA.infancia;
@@ -750,6 +789,7 @@ function renderInfancia(){
   sel.addEventListener('change', e => showAg(e.target.value));
   showAg(0);
   renderCausas('infanciaCausas', d.causas);
+  renderOfensores('infanciaOfensores', d.ofensores);
 }
 
 /* ---------------- REITERADAS (P23) ---------------- */
@@ -778,6 +818,7 @@ function renderReiteradas(){
   sel.addEventListener('change', e => showAg(e.target.value));
   showAg(0);
   renderCausas('reiteradasCausas', d.causas);
+  renderOfensores('reiteradasOfensores', d.ofensores);
 }
 
 /* ---------------- VELOCIDAD ---------------- */
