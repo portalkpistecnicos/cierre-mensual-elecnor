@@ -161,7 +161,7 @@
   .hero-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;}
   .hero-grid{
     display:grid; gap:12px;
-    grid-template-columns:repeat(6,1fr);
+    grid-template-columns:repeat(4,1fr);
     margin-bottom:34px;
   }
   .hero-card{
@@ -314,6 +314,7 @@
     <a class="navpill" data-target="tasa">Tasa Instalación</a>
     <a class="navpill" data-target="backlog">Backlog Instalaciones</a>
     <a class="navpill" data-target="produccion">Producción / Baremo</a>
+    <a class="navpill" data-target="quiebres">Quiebres</a>
   </div></nav>
 </header>
 
@@ -493,7 +494,16 @@
         <ol class="ranklist" id="produccionRank"></ol>
       </div>
     </div>
-    <div class="grid-2" style="margin-top:18px;">
+  </section>
+
+  <!-- ================= QUIEBRES ================= -->
+  <section class="kpi" id="quiebres">
+    <div class="section-head">
+      <div><h2><span class="idx">07</span>Quiebres</h2>
+        <div class="section-sub">Actividades de terreno cerradas con quiebre (comercial o técnico) durante agosto, sobre el total de actividades del mes.</div>
+      </div>
+    </div>
+    <div class="grid-2">
       <div class="card">
         <h3>Quiebres &middot; causales más frecuentes</h3>
         <div class="stat-row" id="quiebreStats"></div>
@@ -694,6 +704,10 @@ function renderHero(){
     {
       target:'produccion', label:'Producción Baremo', value: fmt(DATA.produccion.baremoTotal,1), sub: DATA.produccion.tecnicos+' técnicos · '+fmt(DATA.produccion.completados)+' completadas',
       pill: {cls:'neutral', label: fmt(100*DATA.produccion.completados/DATA.produccion.totalFilas,0)+'% completado'}
+    },
+    {
+      target:'quiebres', label:'Quiebres', value: fmtPct(100*DATA.produccion.quiebres.total/DATA.produccion.quiebres.totalFilas), sub: fmt(DATA.produccion.quiebres.total)+' de '+fmt(DATA.produccion.quiebres.totalFilas)+' actividades',
+      pill: {cls:'neutral', label:'79% comercial'}
     }
   ];
   el.innerHTML = cards.map(c => `
