@@ -418,10 +418,22 @@
   <section class="kpi" id="backlog">
     <div class="section-head">
       <div><h2><span class="idx">05</span>Backlog de Instalaciones</h2>
-        <div class="section-sub">Fotografía de cierre al 31-08 sobre el total de órdenes de la zona Norte y su distribución por estado y área responsable.</div>
+        <div class="section-sub">Días de backlog = En Proceso / [(Terminada+Cancelada)/6 días laborales], al cierre 31-08. Meta corporativa 1,5 días, igual para las 3 agencias.</div>
       </div>
     </div>
     <div class="grid-2">
+      <div class="card">
+        <h3>Días de backlog por agencia</h3>
+        <div class="barchart" id="backlogBars"></div>
+        <div class="legend-meta"><span class="sw"></span> Meta 1,5 días</div>
+      </div>
+      <div class="card">
+        <h3>Detalle por agencia</h3>
+        <select class="agency-select" id="backlogSelect"></select>
+        <div class="detail-panel" id="backlogDetail"></div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:18px;">
       <div class="card">
         <h3>Evolución backlog activo (En Proceso)</h3>
         <div id="backlogLine"></div>
@@ -503,6 +515,13 @@ const DATA = {
   backlog: {
     cierre:"31-08-2026",
     totalOrdenes: 1939,
+    meta: 1.5,
+    total: {enProceso:586, terminada:849, cancelada:504, ritmoDiario:225.5, dias:2.60},
+    agencias: [
+      {nombre:"Viña del Mar", enProceso:361, terminada:466, cancelada:298, ritmoDiario:127.33, dias:2.84},
+      {nombre:"Valparaíso", enProceso:192, terminada:296, cancelada:150, ritmoDiario:74.33, dias:2.58},
+      {nombre:"San Antonio", enProceso:33, terminada:87, cancelada:56, ritmoDiario:23.83, dias:1.38}
+    ],
     estado: [
       {nombre:"Terminada", valor:849, color:"var(--good)"},
       {nombre:"En Proceso", valor:586, color:"var(--brand-blue-2)"},
@@ -565,7 +584,6 @@ function renderHero(){
   const v = DATA.velocidad.total.pct, vSt = statusFor(v, DATA.velocidad.meta);
   const t = DATA.tasa.total.tasa, tSt = statusFor(t, DATA.tasa.meta);
   const back = DATA.backlog;
-  const backDelta = back.trend[back.trend.length-1].v - back.trend[0].v;
   const inf = DATA.infancia.total;
   const rei = DATA.reiteradas.total;
   const reiWorst = DATA.reiteradas.agencias.slice().sort((a,b)=> (b.tasa-b.meta)-(a.tasa-a.meta))[0];
@@ -587,8 +605,8 @@ function renderHero(){
       pill: {cls:tSt.cls, label:tSt.label}
     },
     {
-      target:'backlog', label:'Backlog Activo (31-08)', value: fmt(back.trend[back.trend.length-1].v), sub:(backDelta<=0?'':'+')+fmt(backDelta)+' vs. inicio de mes',
-      pill: {cls: backDelta<=0 ? 'good':'warning', label: backDelta<=0 ? 'Bajó en el mes':'Subió en el mes'}
+      target:'backlog', label:'Backlog Instalaciones', value: fmt(back.total.dias,2)+' d', sub:'Meta 1,5 días · '+fmt(back.total.enProceso)+' en proceso',
+      pill: {cls: back.total.dias<=back.meta ? 'good':'critical', label: back.total.dias<=back.meta ? 'Cumple meta':'Sobre meta'}
     },
     {
       target:'produccion', label:'Producción Baremo', value: fmt(DATA.produccion.baremoTotal,1), sub: DATA.produccion.tecnicos+' técnicos · '+fmt(DATA.produccion.completados)+' completadas',
@@ -779,6 +797,29 @@ function renderTasa(){
 /* ---------------- BACKLOG ---------------- */
 function renderBacklog(){
   const b = DATA.backlog;
+  const items = b.agencias.map(ag => ({
+    label: ag.nombre, value: ag.dias,
+    barClass: ag.dias <= b.meta ? 'good' : 'critical'
+  }));
+  const max = Math.max(b.meta, ...b.agencias.map(a=>a.dias)) * 1.25;
+  renderBarChart('backlogBars', items, {max, meta:b.meta, formatValue: x=>fmt(x,2)+' d'});
+
+  const sel = document.getElementById('backlogSelect');
+  sel.innerHTML = b.agencias.map((ag,i)=>`<option value="${i}">${ag.nombre}</option>`).join('');
+  function showAg(i){
+    const ag = b.agencias[i];
+    document.getElementById('backlogDetail').innerHTML = `
+      <div class="dp-title">${ag.nombre} <span class="pill ${ag.dias<=b.meta?'good':'critical'}" style="margin-left:6px;">${ag.dias<=b.meta?'Cumple meta':'Sobre meta'}</span></div>
+      <div class="detail-grid">
+        <div><div class="n">${fmt(ag.enProceso)}</div><div class="l">En Proceso</div></div>
+        <div><div class="n">${fmt(ag.terminada)}</div><div class="l">Terminada</div></div>
+        <div><div class="n">${fmt(ag.cancelada)}</div><div class="l">Cancelada</div></div>
+        <div><div class="n">${fmt(ag.dias,2)}</div><div class="l">Días de backlog</div></div>
+      </div>`;
+  }
+  sel.addEventListener('change', e => showAg(e.target.value));
+  showAg(0);
+
   renderLineChart('backlogLine', b.trend.map(p=>({f:p.f,v:p.v})));
   renderStack('backlogEstadoStack', b.estado);
   renderStack('backlogAreaStack', b.areaActivo);
