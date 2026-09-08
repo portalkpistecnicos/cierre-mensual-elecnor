@@ -246,6 +246,17 @@
   .linechart .end-dot{fill:var(--accent);}
   .linechart .axis-label{fill:var(--text-3);font:600 9.5px "Public Sans",sans-serif;}
   .linechart .value-label{fill:var(--text);font:700 10.5px "Public Sans",sans-serif;}
+  .linechart .hit-dot{fill:transparent;pointer-events:all;cursor:pointer;}
+  .linechart .hit-dot:hover{fill:var(--brand-blue-2);fill-opacity:.18;}
+
+  .chart-tooltip{
+    position:absolute; pointer-events:none; z-index:20;
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:6px 10px; box-shadow:var(--shadow); font-size:12px; white-space:nowrap;
+    opacity:0; transform:translate(-50%,calc(-100% - 10px)); transition:opacity .12s ease;
+  }
+  .chart-tooltip.show{opacity:1;}
+  .chart-tooltip b{font-family:"Archivo";font-size:14px;font-variant-numeric:tabular-nums;}
 
   .stackbar{height:26px;border-radius:7px;overflow:hidden;display:flex;width:100%;border:1px solid var(--border);}
   .stackbar span{height:100%;}
@@ -765,6 +776,8 @@ function renderLineChart(containerId, points, opts){
   const last = points[points.length-1];
   const first = points[0];
 
+  const hitDots = points.map((p,i) => `<circle class="hit-dot" data-i="${i}" cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="9"></circle>`).join('');
+
   const svg = `<svg class="linechart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Tendencia">
     ${gridY.map((gy,i)=>`<line class="grid-line" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/><text class="axis-label" x="${padL-6}" y="${gy+3}" text-anchor="end">${Math.round(gridLabels[i])}</text>`).join('')}
     <path class="area" d="${areaPath}"/>
@@ -773,8 +786,28 @@ function renderLineChart(containerId, points, opts){
     <text class="value-label" x="${x(points.length-1)-4}" y="${y(last.v)-9}" text-anchor="end">${last.v}</text>
     <circle class="end-dot" cx="${x(0)}" cy="${y(first.v)}" r="3" opacity="0.6"/>
     ${xLabels}
-  </svg>`;
-  document.getElementById(containerId).innerHTML = svg;
+    ${hitDots}
+  </svg>
+  <div class="chart-tooltip" id="${containerId}-tip"></div>`;
+
+  const container = document.getElementById(containerId);
+  container.style.position = 'relative';
+  container.innerHTML = svg;
+
+  const tip = document.getElementById(containerId + '-tip');
+  container.querySelectorAll('.hit-dot').forEach(dot => {
+    const i = parseInt(dot.getAttribute('data-i'), 10);
+    const p = points[i];
+    const leftPct = (x(i) / W) * 100;
+    const topPct = (y(p.v) / H) * 100;
+    dot.addEventListener('mouseenter', () => {
+      tip.innerHTML = `<b>${fmt(p.v)}</b><br>${p.f}`;
+      tip.style.left = leftPct + '%';
+      tip.style.top = topPct + '%';
+      tip.classList.add('show');
+    });
+    dot.addEventListener('mouseleave', () => tip.classList.remove('show'));
+  });
 }
 
 /* ---------------- Stacked bar ---------------- */
