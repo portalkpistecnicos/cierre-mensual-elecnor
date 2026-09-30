@@ -126,13 +126,16 @@
     color:#fff;cursor:pointer;font-size:16px;
     display:flex;align-items:center;justify-content:center;
   }
-  .historico-link{
-    flex:none; text-decoration:none;
+  .month-select{
+    flex:none; appearance:none; cursor:pointer;
     font:600 12.5px "Public Sans",sans-serif; color:#EAF2FC;
     border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08);
-    padding:8px 14px; border-radius:999px; white-space:nowrap;
+    padding:8px 30px 8px 14px; border-radius:999px; white-space:nowrap;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23EAF2FC' stroke-width='2' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
   }
-  .historico-link:hover{background:rgba(255,255,255,.16);}
+  .month-select:hover{background-color:rgba(255,255,255,.16);}
+  .month-select option{color:#0F2843;background:#fff;}
   .theme-toggle:focus-visible, button:focus-visible, select:focus-visible, .navpill:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px;
   }
@@ -330,7 +333,10 @@
       <div class="eyebrow">Informe ejecutivo &middot; Gerencia Norte</div>
       <h1>Cierre Septiembre 2026</h1>
     </div>
-    <a class="historico-link" href="./historico/">Histórico</a>
+    <select class="month-select" id="monthSelect" title="Cambiar de mes" aria-label="Cambiar de mes">
+      <option value="./" selected>Septiembre 2026 (actual)</option>
+      <option value="./historico/agosto-2026.html">Agosto 2026</option>
+    </select>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">&#9789;</button>
   </div>
   <nav class="subnav"><div class="subnav-inner" id="subnav">
@@ -1046,6 +1052,13 @@ function initNav(){
     });
   }, {rootMargin:'-40% 0px -50% 0px'});
   sections.forEach(s => s && obs.observe(s));
+
+  const monthSelect = document.getElementById('monthSelect');
+  if (monthSelect) {
+    monthSelect.addEventListener('change', e => {
+      if (e.target.value) window.location.href = e.target.value;
+    });
+  }
 
   const toggle = document.getElementById('themeToggle');
   try {
