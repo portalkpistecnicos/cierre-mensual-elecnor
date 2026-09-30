@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histórico · Cierre de Mes ELECNOR</title>
+<style>
+  :root{
+    --bg:#F3F6FB; --surface:#FFFFFF; --border:#D8E2EF; --text:#0F2843; --text-2:#54687F;
+    --brand-blue:#004187; --accent:#F47C02;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#081627; --surface:#0F2440; --border:#1E3D63; --text:#EAF2FC; --text-2:#A7BCD8; }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+  .topbar{background:var(--brand-blue);color:#fff;padding:16px 20px;}
+  .topbar a{color:#BFD6EF;text-decoration:none;font-size:13px;}
+  .topbar h1{margin:6px 0 0;font-size:20px;}
+  .wrap{max-width:720px;margin:0 auto;padding:24px 20px 60px;}
+  .card{
+    display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:18px 20px;margin-bottom:14px;text-decoration:none;color:inherit;
+    box-shadow:0 1px 2px rgba(15,40,67,.06);
+  }
+  .card .mes{font-weight:800;font-size:17px;}
+  .card .estado{font-size:12.5px;color:var(--text-2);margin-top:4px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:#E1F3EA;color:#1E8E5A;margin-left:8px;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../">&larr; Volver al Cierre de Mes actual</a>
+    <h1>Histórico de Cierres · ELECNOR Gerencia Norte</h1>
+  </div>
+  <div class="wrap">
+    <a class="card" href="agosto-2026.html">
+      <div class="mes">Agosto 2026 <span class="pill">Cerrado</span></div>
+      <div class="estado">Averías Infancia/Reiteradas, Velocidad, Tasa, Backlog, Producción/Baremo, Quiebres</div>
+    </a>
+  </div>
+</body>
+</html>
