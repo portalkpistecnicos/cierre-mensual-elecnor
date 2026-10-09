@@ -364,8 +364,8 @@
   <!-- ================= INFANCIA (P22) ================= -->
   <section class="kpi" id="infancia">
     <div class="section-head">
-      <div><h2><span class="idx">01</span>Averías de Infancia <span class="pill neutral" style="vertical-align:middle;margin-left:8px;">Pendiente</span></h2>
-        <div class="section-sub">Reporte oficial P22 · % de infancia sobre altas/traslados/blindajes FO del mes anterior. Meta corporativa 1,50%, igual para las 3 agencias.</div>
+      <div><h2><span class="idx">01</span>Averías de Infancia <span class="pill neutral" data-badge style="vertical-align:middle;margin-left:8px;">Pendiente</span></h2>
+        <div class="section-sub" id="infanciaSub">Reporte oficial P22 · % de infancia sobre altas/traslados/blindajes FO del mes anterior. Meta corporativa 1,50%, igual para las 3 agencias.</div>
       </div>
     </div>
     <div class="pending-card" id="infanciaPendiente" hidden>
@@ -395,7 +395,7 @@
       <div class="card">
         <h3>Técnicos más ofensores</h3>
         <ol class="ranklist" id="infanciaOfensores"></ol>
-        <div class="note">Técnico que cerró la reparación asociada al caso de infancia (rmdy_nombre_tecnico), no necesariamente quien hizo la instalación original.</div>
+        <div class="note" id="infanciaOfensoresNota"></div>
       </div>
     </div>
     </div>
@@ -404,8 +404,8 @@
   <!-- ================= REITERADAS (P23) ================= -->
   <section class="kpi" id="reiteradas">
     <div class="section-head">
-      <div><h2><span class="idx">02</span>Averías Reiteradas <span class="pill neutral" style="vertical-align:middle;margin-left:8px;">Pendiente</span></h2>
-        <div class="section-sub">Reporte oficial P23 · % de casos con reitero a 30 días sobre el total de reparaciones FO del mes anterior. Meta por agencia: San Antonio 4,00% · Valparaíso 2,50% · Viña del Mar 3,20%.</div>
+      <div><h2><span class="idx">02</span>Averías Reiteradas <span class="pill neutral" data-badge style="vertical-align:middle;margin-left:8px;">Pendiente</span></h2>
+        <div class="section-sub" id="reiteradasSub">Reporte oficial P23 · % de casos con reitero a 30 días sobre el total de reparaciones FO del mes anterior. Meta por agencia: San Antonio 4,00% · Valparaíso 2,50% · Viña del Mar 3,20%.</div>
       </div>
     </div>
     <div class="pending-card" id="reiteradasPendiente" hidden>
@@ -435,7 +435,7 @@
       <div class="card">
         <h3>Técnicos más ofensores</h3>
         <ol class="ranklist" id="reiteradasOfensores"></ol>
-        <div class="note">Técnico que atendió la reparación reiterada (toa_piv_nombre_tecnico).</div>
+        <div class="note" id="reiteradasOfensoresNota"></div>
       </div>
     </div>
     </div>
@@ -589,12 +589,59 @@ const MESES = [
 ];
 const DATA = {
   infancia: {
-    pendiente: true,
-    motivo: "El reporte oficial P22 de octubre (mide instalaciones de septiembre, mes anterior) aún no ha sido publicado por el equipo de Evaluación — no existe todavía la carpeta de cierre."
+    provisorio: true,
+    badge: {texto:"Medición septiembre · parcial", cls:"violet"},
+    sub: "Reporte P22 calculado desde el export Sterling del 09-10 con la metodología del informe oficial: % de casos de infancia sobre las instalaciones completadas de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta corporativa 1,50%, igual para las 3 agencias. Parcial: la ventana de 30 días de las altas de septiembre sigue abierta, por lo que la tasa seguirá subiendo hasta fines de octubre; el informe oficial de Evaluación aún no se publica.",
+    meta: 1.50,
+    total: {infancia:68, base:3697, tasa:1.84},
+    agencias: [
+      {nombre:"Viña del Mar", infancia:58, base:2102, tasa:2.76},
+      {nombre:"Valparaíso", infancia:6, base:1188, tasa:0.51},
+      {nombre:"San Antonio", infancia:4, base:407, tasa:0.98}
+    ],
+    causas: [
+      {codigo:"952", nombre:"Cliente no permite revisar", valor:10},
+      {codigo:"F52", nombre:"Acometida FTTX", valor:8},
+      {codigo:"F56", nombre:"Accesorios FTTX", valor:8},
+      {codigo:"A19", nombre:"Cambio conector FO", valor:8},
+      {codigo:"W05", nombre:"Cambio ubicación/interfaz equipo cliente", valor:7}
+    ],
+    ofensores: [
+      {nombre:"Sebastián Patricio Silva Cantillana", valor:4},
+      {nombre:"José Manuel Sepúlveda Rojas", valor:4},
+      {nombre:"Carlos Hernán Muñoz Matus", valor:3},
+      {nombre:"Ricardo Benito Correa Torres", valor:3},
+      {nombre:"Ronald Antonio Gariza Torres", valor:3}
+    ],
+    notaCausas: "Top 5 de los 68 casos de infancia detectados hasta el 09-10 (export Sterling P22). Hay empate en 8 casos entre F52, F56 y A19.",
+    notaOfensores: "Instalador original del caso (toa_provider_name), no el técnico que fue a reparar. Desde el 3.er lugar hay empates con 3 casos (también Ramírez Torres y Venegas Hernández); 37 instaladores distintos hasta ahora."
   },
   reiteradas: {
-    pendiente: true,
-    motivo: "El reporte oficial P23 de octubre (mide reparaciones de septiembre, mes anterior) aún no ha sido publicado por el equipo de Evaluación — no existe todavía la carpeta de cierre."
+    provisorio: true,
+    badge: {texto:"Medición septiembre · parcial", cls:"violet"},
+    sub: "Reporte P23 calculado desde el export Sterling del 09-10 con la metodología del informe oficial: % de reparaciones FO con reitero a 30 días (rdy_prd_tiene_reitero_30d) sobre el total de reparaciones FO de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta por agencia: San Antonio 4,00% · Valparaíso 2,50% · Viña del Mar 3,20%. Parcial: la ventana de 30 días de las reparaciones de septiembre sigue abierta; el informe oficial de Evaluación aún no se publica.",
+    total: {reiteradas:89, base:2182, tasa:4.08},
+    agencias: [
+      {nombre:"Viña del Mar", reiteradas:76, base:1293, tasa:5.88, meta:3.20},
+      {nombre:"Valparaíso", reiteradas:11, base:676, tasa:1.63, meta:2.50},
+      {nombre:"San Antonio", reiteradas:2, base:213, tasa:0.94, meta:4.00}
+    ],
+    causas: [
+      {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:18},
+      {codigo:"F56", nombre:"Accesorios FTTX", valor:13},
+      {codigo:"952", nombre:"Cliente no permite revisar", valor:13},
+      {codigo:"F52", nombre:"Acometida FTTX", valor:10},
+      {codigo:"W05", nombre:"Cambio ubicación/interfaz equipo cliente", valor:8}
+    ],
+    ofensores: [
+      {nombre:"Matías Rubén Rubina Burgos", valor:9},
+      {nombre:"Yussef Alí Sat Pino", valor:7},
+      {nombre:"Héctor José Ortiz Márquez", valor:7},
+      {nombre:"Carlos Hernán Muñoz Matus", valor:4},
+      {nombre:"Santiago Emilio Ángel Arias", valor:4}
+    ],
+    notaCausas: "Top 5 de los 89 casos reiterados detectados hasta el 09-10 (export Sterling P23).",
+    notaOfensores: "Técnico que atendió la reparación que luego tuvo reitero (toa_piv_nombre_tecnico). Hay empate en el 4.º lugar con 4 casos (también Serrano Vellagas); 41 técnicos distintos hasta ahora."
   },
   velocidad: {
     meta: 85.0,
@@ -708,13 +755,13 @@ function renderHero(){
   const infCard = DATA.infancia.pendiente
     ? {target:'infancia', label:'Averías Infancia', value:'—', sub:'Informe oficial pendiente', pill:{cls:'neutral', label:'Pendiente'}}
     : (() => { const inf = DATA.infancia.total; return {
-        target:'infancia', label:'Averías Infancia', value: fmtPct(inf.tasa), sub:'Meta 1,50% · '+inf.infancia+'/'+fmt(inf.base),
+        target:'infancia', label:'Averías Infancia', value: fmtPct(inf.tasa), sub:'Meta 1,50% · '+inf.infancia+'/'+fmt(inf.base)+(DATA.infancia.provisorio ? ' · provisorio' : ''),
         pill: {cls: inf.tasa<=DATA.infancia.meta ? 'good':'critical', label: inf.tasa<=DATA.infancia.meta ? 'Cumple meta':'Sobre meta'}
       }; })();
   const reiCard = DATA.reiteradas.pendiente
     ? {target:'reiteradas', label:'Averías Reiteradas', value:'—', sub:'Informe oficial pendiente', pill:{cls:'neutral', label:'Pendiente'}}
     : (() => { const rei = DATA.reiteradas.total; const reiWorst = DATA.reiteradas.agencias.slice().sort((a,b)=> (b.tasa-b.meta)-(a.tasa-a.meta))[0]; return {
-        target:'reiteradas', label:'Averías Reiteradas', value: fmtPct(rei.tasa), sub: reiWorst.nombre+' es la más crítica ('+fmtPct(reiWorst.tasa)+')',
+        target:'reiteradas', label:'Averías Reiteradas', value: fmtPct(rei.tasa), sub: reiWorst.nombre+' es la más crítica ('+fmtPct(reiWorst.tasa)+')'+(DATA.reiteradas.provisorio ? ' · provisorio' : ''),
         pill: {cls: reiWorst.tasa<=reiWorst.meta ? 'good':'critical', label: reiWorst.tasa<=reiWorst.meta ? 'Las 3 cumplen':'Alguna agencia excede'}
       }; })();
   const cards = [
@@ -861,6 +908,16 @@ function renderOfensores(containerId, ofensores){
     </li>`).join('');
 }
 
+function aplicarTextosKpi(secId, d, prefijo){
+  const badge = document.querySelector('#' + secId + ' [data-badge]');
+  if (badge && d.badge) { badge.textContent = d.badge.texto; badge.className = 'pill ' + d.badge.cls; }
+  if (d.sub) document.getElementById(prefijo + 'Sub').textContent = d.sub;
+  const nc = document.getElementById(prefijo + 'CausasNota');
+  if (nc) { if (d.notaCausas) { nc.innerHTML = d.notaCausas; nc.hidden = false; } else { nc.hidden = true; } }
+  const no = document.getElementById(prefijo + 'OfensoresNota');
+  if (no) { if (d.notaOfensores) { no.innerHTML = d.notaOfensores; no.hidden = false; } else { no.hidden = true; } }
+}
+
 /* ---------------- INFANCIA (P22) ---------------- */
 function renderInfancia(){
   const d = DATA.infancia;
@@ -874,6 +931,7 @@ function renderInfancia(){
     label: ag.nombre, value: ag.tasa,
     barClass: ag.tasa <= d.meta ? 'good' : 'critical'
   }));
+  aplicarTextosKpi('infancia', d, 'infancia');
   const max = Math.max(d.meta, ...d.agencias.map(a=>a.tasa)) * 1.25;
   renderBarChart('infanciaBars', items, {max, meta:d.meta, formatValue: x=>fmtPct(x)});
 
@@ -909,6 +967,7 @@ function renderReiteradas(){
     label: ag.nombre, value: ag.tasa, meta: ag.meta,
     barClass: ag.tasa <= ag.meta ? 'good' : 'critical'
   }));
+  aplicarTextosKpi('reiteradas', d, 'reiteradas');
   const max = Math.max(...d.agencias.map(a=>Math.max(a.tasa,a.meta))) * 1.25;
   renderBarChart('reiteradasBars', items, {max, formatValue: x=>fmtPct(x)});
 
