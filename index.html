@@ -136,7 +136,28 @@
   }
   .month-select:hover{background-color:rgba(255,255,255,.16);}
   .month-select option{color:#0F2843;background:#fff;}
-  .theme-toggle:focus-visible, button:focus-visible, select:focus-visible, .navpill:focus-visible{
+  .refresh-btn{
+    flex:none; width:36px;height:36px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08);
+    color:#fff;cursor:pointer;font-size:18px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .refresh-btn:hover{background-color:rgba(255,255,255,.16);}
+  .refresh-btn[hidden]{display:none;}
+  .upd-overlay{position:fixed;inset:0;background:rgba(8,22,39,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .upd-overlay[hidden]{display:none;}
+  .upd-card{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:100%;max-width:420px;padding:20px;}
+  .upd-card h2{font-size:17px;font-weight:800;margin-bottom:2px;}
+  .upd-sub{font-size:12.5px;color:var(--text-2);margin-bottom:14px;}
+  .upd-btn{display:block;width:100%;text-align:center;font:700 14px "Public Sans",sans-serif;padding:11px 14px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--brand-blue);background:transparent;color:var(--brand-blue-2);}
+  .upd-btn.primary{background:var(--brand-blue);color:#fff;}
+  .upd-help{font-size:12px;color:var(--text-2);margin:6px 2px 14px;line-height:1.4;}
+  .upd-msg{font-size:12.5px;background:var(--accent-soft);color:#7A3E00;border-radius:8px;padding:9px 11px;margin:2px 0 12px;line-height:1.4;}
+  .upd-close{display:block;margin:0 auto;background:none;border:none;color:var(--text-2);font:600 13px "Public Sans",sans-serif;cursor:pointer;padding:6px 10px;}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .upd-msg{color:#FFD9AE;background:rgba(244,124,2,.18);} }
+  :root[data-theme="dark"] .upd-msg{color:#FFD9AE;background:rgba(244,124,2,.18);}
+  .theme-toggle:focus-visible, .refresh-btn:focus-visible, button:focus-visible, select:focus-visible, .navpill:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px;
   }
 
@@ -334,6 +355,7 @@
       <h1 id="hTitulo"></h1>
     </div>
     <select class="month-select" id="monthSelect" title="Cambiar de mes" aria-label="Cambiar de mes"></select>
+    <button class="refresh-btn" id="updBtn" title="Actualizar datos" aria-label="Actualizar datos">&#8635;</button>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">&#9789;</button>
   </div>
   <nav class="subnav"><div class="subnav-inner" id="subnav">
@@ -569,18 +591,30 @@
   </div>
 </div>
 
+<div class="upd-overlay" id="updOverlay" hidden>
+  <div class="upd-card" role="dialog" aria-modal="true" aria-labelledby="updTitulo">
+    <h2 id="updTitulo">Actualizar datos</h2>
+    <div class="upd-sub">Versi&oacute;n publicada: <b id="updGenerado"></b></div>
+    <button class="upd-btn primary" id="updPc">Recalcular desde este PC</button>
+    <p class="upd-help">Abre el actualizador del equipo: recalcula los 7 KPI y publica en GitHub (demora unos minutos). Solo funciona en el PC con Windows donde se instal&oacute; el bot&oacute;n.</p>
+    <button class="upd-btn" id="updReload">Ver la &uacute;ltima versi&oacute;n publicada</button>
+    <p class="upd-help">Vuelve a cargar esta p&aacute;gina desde GitHub. Es la opci&oacute;n para celular.</p>
+    <div class="upd-msg" id="updMsg" hidden></div>
+    <button class="upd-close" id="updCerrar">Cerrar</button>
+  </div>
+</div>
 <script>
 const PERIODO = {
-  slug: "octubre-2026",
-  titulo: "Cierre Octubre 2026",
-  rango: "01–08 octubre 2026 (parcial)",
-  generado: "09-10-2026",
-  footer: "Cierre Mes Octubre 2026 (parcial al 08-10)",
-  backlogCorte: "al corte 09-10",
-  backlogEtiqueta: "Corte 09-10",
-  durante: "octubre (parcial al 08-10)",
-  historico: false,
-  parcial: true
+    "slug":  "octubre-2026",
+    "titulo":  "Cierre Octubre 2026",
+    "rango":  "01–18 octubre 2026 (parcial)",
+    "generado":  "19-10-2026",
+    "footer":  "Cierre Mes Octubre 2026 (parcial al 18-10)",
+    "backlogCorte":  "al corte 19-10",
+    "backlogEtiqueta":  "Corte 19-10",
+    "durante":  "octubre (parcial al 18-10)",
+    "historico":  false,
+    "parcial":  true
 };
 const MESES = [
   {slug:"octubre-2026", nombre:"Octubre 2026", actual:true},
@@ -588,151 +622,485 @@ const MESES = [
   {slug:"agosto-2026", nombre:"Agosto 2026"}
 ];
 const DATA = {
-  infancia: {
-    provisorio: true,
-    badge: {texto:"Medición septiembre · parcial", cls:"violet"},
-    sub: "Reporte P22 calculado desde el export Sterling del 09-10 con la metodología del informe oficial: % de casos de infancia sobre las instalaciones completadas de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta corporativa 1,50%, igual para las 3 agencias. Parcial: la ventana de 30 días de las altas de septiembre sigue abierta, por lo que la tasa seguirá subiendo hasta fines de octubre; el informe oficial de Evaluación aún no se publica.",
-    meta: 1.50,
-    total: {infancia:68, base:3697, tasa:1.84},
-    agencias: [
-      {nombre:"Viña del Mar", infancia:58, base:2102, tasa:2.76},
-      {nombre:"Valparaíso", infancia:6, base:1188, tasa:0.51},
-      {nombre:"San Antonio", infancia:4, base:407, tasa:0.98}
-    ],
-    causas: [
-      {codigo:"952", nombre:"Cliente no permite revisar", valor:10},
-      {codigo:"F52", nombre:"Acometida FTTX", valor:8},
-      {codigo:"F56", nombre:"Accesorios FTTX", valor:8},
-      {codigo:"A19", nombre:"Cambio conector FO", valor:8},
-      {codigo:"W05", nombre:"Cambio ubicación/interfaz equipo cliente", valor:7}
-    ],
-    ofensores: [
-      {nombre:"Sebastián Patricio Silva Cantillana", valor:4},
-      {nombre:"José Manuel Sepúlveda Rojas", valor:4},
-      {nombre:"Carlos Hernán Muñoz Matus", valor:3},
-      {nombre:"Ricardo Benito Correa Torres", valor:3},
-      {nombre:"Ronald Antonio Gariza Torres", valor:3}
-    ],
-    notaCausas: "Top 5 de los 68 casos de infancia detectados hasta el 09-10 (export Sterling P22). Hay empate en 8 casos entre F52, F56 y A19.",
-    notaOfensores: "Instalador original del caso (toa_provider_name), no el técnico que fue a reparar. Desde el 3.er lugar hay empates con 3 casos (también Ramírez Torres y Venegas Hernández); 37 instaladores distintos hasta ahora."
-  },
-  reiteradas: {
-    provisorio: true,
-    badge: {texto:"Medición septiembre · parcial", cls:"violet"},
-    sub: "Reporte P23 calculado desde el export Sterling del 09-10 con la metodología del informe oficial: % de reparaciones FO con reitero a 30 días (rdy_prd_tiene_reitero_30d) sobre el total de reparaciones FO de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta por agencia: San Antonio 4,00% · Valparaíso 2,50% · Viña del Mar 3,20%. Parcial: la ventana de 30 días de las reparaciones de septiembre sigue abierta; el informe oficial de Evaluación aún no se publica.",
-    total: {reiteradas:89, base:2182, tasa:4.08},
-    agencias: [
-      {nombre:"Viña del Mar", reiteradas:76, base:1293, tasa:5.88, meta:3.20},
-      {nombre:"Valparaíso", reiteradas:11, base:676, tasa:1.63, meta:2.50},
-      {nombre:"San Antonio", reiteradas:2, base:213, tasa:0.94, meta:4.00}
-    ],
-    causas: [
-      {codigo:"F67", nombre:"Cambio módem (resp. telefónica)", valor:18},
-      {codigo:"F56", nombre:"Accesorios FTTX", valor:13},
-      {codigo:"952", nombre:"Cliente no permite revisar", valor:13},
-      {codigo:"F52", nombre:"Acometida FTTX", valor:10},
-      {codigo:"W05", nombre:"Cambio ubicación/interfaz equipo cliente", valor:8}
-    ],
-    ofensores: [
-      {nombre:"Matías Rubén Rubina Burgos", valor:9},
-      {nombre:"Yussef Alí Sat Pino", valor:7},
-      {nombre:"Héctor José Ortiz Márquez", valor:7},
-      {nombre:"Carlos Hernán Muñoz Matus", valor:4},
-      {nombre:"Santiago Emilio Ángel Arias", valor:4}
-    ],
-    notaCausas: "Top 5 de los 89 casos reiterados detectados hasta el 09-10 (export Sterling P23).",
-    notaOfensores: "Técnico que atendió la reparación que luego tuvo reitero (toa_piv_nombre_tecnico). Hay empate en el 4.º lugar con 4 casos (también Serrano Vellagas); 41 técnicos distintos hasta ahora."
-  },
-  velocidad: {
-    meta: 85.0,
-    total: {total:585, cumple:360, pct:61.54},
-    agencias: [
-      {nombre:"Viña del Mar", total:338, cumple:203, pct:60.06},
-      {nombre:"Valparaíso", total:194, cumple:119, pct:61.34},
-      {nombre:"San Antonio", total:51, cumple:36, pct:70.59}
-    ],
-    nota: 'Cifras parciales (cierres del 01 al 08-10). La suma de las 3 agencias (583 reparaciones, 358 cumplen) queda 2 casos por debajo del total general (585, 360 cumplen): hay 2 registros de la agencia "QUILPUE", fuera de la zona Norte, que se excluyeron del desglose por ser irrelevantes, pero siguen contados en el total y en el % general (61,54%).'
-  },
-  tasa: {
-    meta: 80.7,
-    total: {numerador:762, cancelada:90, denominador:852, tasa:89.44},
-    agencias: [
-      {nombre:"Viña del Mar", numerador:451, cancelada:54, denominador:505, tasa:89.31, flag:null},
-      {nombre:"Valparaíso", numerador:236, cancelada:30, denominador:266, tasa:88.72, flag:null},
-      {nombre:"San Antonio", numerador:75, cancelada:6, denominador:81, tasa:92.59, flag:null}
-    ],
-    nota: 'Cifras parciales del mes en curso (órdenes terminadas y canceladas acumuladas a la fecha de la última descarga).'
-  },
-  backlog: {
-    cierre:"09-10-2026",
-    totalOrdenes: 1892,
-    meta: 1.5,
-    total: {enProceso:568, terminada:822, cancelada:502, ritmoDiario:220.67, dias:2.57},
-    agencias: [
-      {nombre:"Viña del Mar", enProceso:340, terminada:487, cancelada:271, ritmoDiario:126.33, dias:2.69},
-      {nombre:"Valparaíso", enProceso:167, terminada:252, cancelada:170, ritmoDiario:70.33, dias:2.37},
-      {nombre:"San Antonio", enProceso:61, terminada:83, cancelada:61, ritmoDiario:24.0, dias:2.54}
-    ],
-    estado: [
-      {nombre:"Terminada", valor:822, color:"var(--good)"},
-      {nombre:"En Proceso", valor:568, color:"var(--brand-blue-2)"},
-      {nombre:"Cancelada", valor:502, color:"var(--critical)"}
-    ],
-    areaActivo: [
-      {nombre:"Fuera de PGU", valor:517, color:"var(--warning)"},
-      {nombre:"PGU (nuestra área)", valor:51, color:"var(--brand-blue-2)"}
-    ],
-    trend: [
-      {f:"01-10",v:650},{f:"05-10",v:574},{f:"06-10",v:538},
-      {f:"07-10",v:579},{f:"08-10",v:574},{f:"09-10",v:568}
-    ]
-  },
-  produccion: {
-    totalFilas: 2196,
-    baremoTotal: 2508.35,
-    tecnicos: 55,
-    completados: 1431,
-    instala: 1356,
-    repara: 840,
-    nota: 'Cifras parciales al 08-10. Promedio de <b>53,14 técnicos activos por día</b> excluyendo domingos (7 días hábiles con datos); 47,12 si se cuentan los 8 días. El máximo en un solo día fue 55 técnicos, sobre un total de 55 técnicos distintos en lo que va de octubre.',
-    topTecnicos: [
-      {nombre:"Patricio Delano Schwaiger", valor:71.98},
-      {nombre:"Carlos Muñoz Matus", valor:70.68},
-      {nombre:"Cristian Vásquez Muñoz", valor:69.80},
-      {nombre:"Jorge Jorquera Flores", valor:66.75},
-      {nombre:"Santiago Ángel Arias", valor:65.68},
-      {nombre:"Matías Montecinos Pozo", valor:61.75},
-      {nombre:"Alejandro Lagos González", valor:58.65},
-      {nombre:"Daniel Ramírez Torres", valor:57.89},
-      {nombre:"Esteban Ortiz Figueroa", valor:56.28},
-      {nombre:"Héctor Ortiz Márquez", valor:56.25}
-    ],
-    supervisores: [
-      {nombre:"Julio Pinto Herrera", valor:884.94},
-      {nombre:"Juan Carlos España Guerrero", valor:814.90},
-      {nombre:"Ramón Vargas Fontecha", valor:808.51}
-    ],
-    quiebres: {
-      total: 644, totalFilas: 2196,
-      comercialPct: "79,3%",
-      nota1: 'Un quiebre no siempre es responsabilidad del técnico: el 79,3% son de origen <b>comercial</b> (cliente no cumple cita, casa cerrada, desistimiento), 13,2% <b>técnico</b> y 7,5% sin clasificar. Este ranking cuenta todos los quiebres registrados a nombre del técnico, sin distinguir causa.',
-      nota2: 'Los quiebres del período se reparten entre <b>55 técnicos distintos</b> (todos los técnicos activos hasta ahora en octubre); este Top 5 (98 quiebres) es solo una porción del total (644) y hay empates en el borde del ranking (varios técnicos con 19 quiebres), por lo que el orden entre ellos es indicativo mientras el mes siga en curso.',
-      causas: [
-        {codigo:"Q11", nombre:"Cliente no cumplió cita", valor:188},
-        {codigo:"918", nombre:"Casa cerrada, sin contacto cliente", valor:159},
-        {codigo:"Q15", nombre:"Cliente posterga instalación", valor:71},
-        {codigo:"Q46", nombre:"Cliente desea producto en otra dirección", valor:43},
-        {codigo:"Q73", nombre:"Reagendar por problemas climáticos", valor:36}
-      ],
-      tecnicos: [
-        {nombre:"Josué Orellana Alarcón", valor:20},
-        {nombre:"Héctor Fernando Quiroz Torres", valor:20},
-        {nombre:"Matías Rubén Rubina Burgos", valor:20},
-        {nombre:"Esteban David Ortiz Figueroa", valor:19},
-        {nombre:"Cristian Nicolás Serrano Vellagas", valor:19}
-      ]
-    }
-  }
+    "infancia":  {
+                     "provisorio":  true,
+                     "badge":  {
+                                   "texto":  "Medición septiembre · parcial",
+                                   "cls":  "violet"
+                               },
+                     "sub":  "Reporte P22 calculado desde el export Sterling del 19-10 con la metodología del informe oficial: % de casos de infancia sobre las instalaciones completadas de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta corporativa 1,50%, igual para las 3 agencias. Parcial: la ventana de 30 días de septiembre sigue abierta, por lo que la tasa seguirá subiendo hasta fines de octubre; el informe oficial de Evaluación aún no se publica.",
+                     "meta":  1.5,
+                     "total":  {
+                                   "infancia":  82,
+                                   "base":  3697,
+                                   "tasa":  2.22
+                               },
+                     "agencias":  [
+                                      {
+                                          "nombre":  "Viña del Mar",
+                                          "infancia":  70,
+                                          "base":  2102,
+                                          "tasa":  3.33
+                                      },
+                                      {
+                                          "nombre":  "Valparaíso",
+                                          "infancia":  7,
+                                          "base":  1188,
+                                          "tasa":  0.59
+                                      },
+                                      {
+                                          "nombre":  "San Antonio",
+                                          "infancia":  5,
+                                          "base":  407,
+                                          "tasa":  1.23
+                                      }
+                                  ],
+                     "causas":  [
+                                    {
+                                        "codigo":  "952",
+                                        "nombre":  "Cliente no permite revisar",
+                                        "valor":  13
+                                    },
+                                    {
+                                        "codigo":  "F56",
+                                        "nombre":  "Accesorios FTTX",
+                                        "valor":  10
+                                    },
+                                    {
+                                        "codigo":  "A19",
+                                        "nombre":  "Cambio conector FO",
+                                        "valor":  9
+                                    },
+                                    {
+                                        "codigo":  "W05",
+                                        "nombre":  "Cambio ubicación/interfaz equipo cliente",
+                                        "valor":  9
+                                    },
+                                    {
+                                        "codigo":  "F52",
+                                        "nombre":  "Acometida FTTX",
+                                        "valor":  8
+                                    }
+                                ],
+                     "ofensores":  [
+                                       {
+                                           "nombre":  "Héctor José Ortiz Márquez",
+                                           "valor":  5
+                                       },
+                                       {
+                                           "nombre":  "Carlos Hernán Muñoz Matus",
+                                           "valor":  4
+                                       },
+                                       {
+                                           "nombre":  "José Manuel Sepúlveda Rojas",
+                                           "valor":  4
+                                       },
+                                       {
+                                           "nombre":  "Sebastián Patricio Silva Cantillana",
+                                           "valor":  4
+                                       },
+                                       {
+                                           "nombre":  "Abelardo Hipolito Venegas Hernández",
+                                           "valor":  3
+                                       }
+                                   ],
+                     "notaCausas":  "Top 5 de los 82 casos de infancia detectados hasta el 19-10 (export Sterling P22). Hay empate en 9 casos (A19 y W05); empate en el 5.º lugar con 8 casos (F52 y H01).",
+                     "notaOfensores":  "Instalador original del caso (toa_provider_name), no el técnico que fue a reparar. Hay empate en 4 casos (Muñoz Matus, Sepúlveda Rojas y Silva Cantillana); empate en el 5.º lugar con 3 casos (Venegas Hernández, Para Gómez, Serrano Vellagas y 7 más). 40 instaladores distintos hasta ahora."
+                 },
+    "reiteradas":  {
+                       "provisorio":  true,
+                       "badge":  {
+                                     "texto":  "Medición septiembre · parcial",
+                                     "cls":  "violet"
+                                 },
+                       "sub":  "Reporte P23 calculado desde el export Sterling del 19-10 con la metodología del informe oficial: % de reparaciones FO con reitero a 30 días (rdy_prd_tiene_reitero_30d) sobre el total de reparaciones FO de septiembre (mes anterior), excl. claves de cierre 913/F20/F23/561/A12/B01/B36/I50. Meta por agencia: San Antonio 4,00% · Valparaíso 2,50% · Viña del Mar 3,20%. Parcial: la ventana de 30 días de septiembre sigue abierta, por lo que la tasa seguirá subiendo hasta fines de octubre; el informe oficial de Evaluación aún no se publica.",
+                       "total":  {
+                                     "reiteradas":  107,
+                                     "base":  2181,
+                                     "tasa":  4.91
+                                 },
+                       "agencias":  [
+                                        {
+                                            "nombre":  "Viña del Mar",
+                                            "reiteradas":  90,
+                                            "base":  1293,
+                                            "tasa":  6.96,
+                                            "meta":  3.2
+                                        },
+                                        {
+                                            "nombre":  "Valparaíso",
+                                            "reiteradas":  14,
+                                            "base":  675,
+                                            "tasa":  2.07,
+                                            "meta":  2.5
+                                        },
+                                        {
+                                            "nombre":  "San Antonio",
+                                            "reiteradas":  3,
+                                            "base":  213,
+                                            "tasa":  1.41,
+                                            "meta":  4
+                                        }
+                                    ],
+                       "causas":  [
+                                      {
+                                          "codigo":  "F67",
+                                          "nombre":  "Cambio módem (resp. telefónica)",
+                                          "valor":  21
+                                      },
+                                      {
+                                          "codigo":  "952",
+                                          "nombre":  "Cliente no permite revisar",
+                                          "valor":  16
+                                      },
+                                      {
+                                          "codigo":  "F56",
+                                          "nombre":  "Accesorios FTTX",
+                                          "valor":  14
+                                      },
+                                      {
+                                          "codigo":  "F52",
+                                          "nombre":  "Acometida FTTX",
+                                          "valor":  12
+                                      },
+                                      {
+                                          "codigo":  "W05",
+                                          "nombre":  "Cambio ubicación/interfaz equipo cliente",
+                                          "valor":  10
+                                      }
+                                  ],
+                       "ofensores":  [
+                                         {
+                                             "nombre":  "Matías Rubén Rubina Burgos",
+                                             "valor":  9
+                                         },
+                                         {
+                                             "nombre":  "Héctor José Ortiz Márquez",
+                                             "valor":  7
+                                         },
+                                         {
+                                             "nombre":  "Yussef Alí Sat Pino",
+                                             "valor":  7
+                                         },
+                                         {
+                                             "nombre":  "Héctor Fernando Quiroz Torres",
+                                             "valor":  6
+                                         },
+                                         {
+                                             "nombre":  "José Luis Muñoz Ramos",
+                                             "valor":  6
+                                         }
+                                     ],
+                       "notaCausas":  "Top 5 de los 107 casos reiterados detectados hasta el 19-10 (export Sterling P23).",
+                       "notaOfensores":  "Técnico que atendió la reparación que luego tuvo reitero (toa_piv_nombre_tecnico). Hay empate en 7 casos (Ortiz Márquez y Sat Pino); empate en 6 casos (Quiroz Torres y Muñoz Ramos). 45 técnicos distintos hasta ahora."
+                   },
+    "velocidad":  {
+                      "meta":  85,
+                      "total":  {
+                                    "total":  1199,
+                                    "cumple":  820,
+                                    "pct":  68.39
+                                },
+                      "agencias":  [
+                                       {
+                                           "nombre":  "Viña del Mar",
+                                           "total":  702,
+                                           "cumple":  485,
+                                           "pct":  69.09
+                                       },
+                                       {
+                                           "nombre":  "Valparaíso",
+                                           "total":  382,
+                                           "cumple":  265,
+                                           "pct":  69.37
+                                       },
+                                       {
+                                           "nombre":  "San Antonio",
+                                           "total":  113,
+                                           "cumple":  68,
+                                           "pct":  60.18
+                                       }
+                                   ],
+                      "nota":  "Cifras parciales (cierres del 01 al 18-10). La suma de las 3 agencias (1.197 reparaciones) queda 2 casos por debajo del total general (1.199): hay registros con agencia \"QUILPUE\" (2), fuera de la zona Norte (con 2 que cumplen), que se excluyeron del desglose por ser irrelevantes, pero siguen contados en el total y en el % general (68,39%)."
+                  },
+    "tasa":  {
+                 "meta":  80.7,
+                 "total":  {
+                               "numerador":  1496,
+                               "cancelada":  195,
+                               "denominador":  1691,
+                               "tasa":  88.47
+                           },
+                 "agencias":  [
+                                  {
+                                      "nombre":  "Viña del Mar",
+                                      "numerador":  856,
+                                      "cancelada":  117,
+                                      "denominador":  973,
+                                      "tasa":  87.98,
+                                      "flag":  null
+                                  },
+                                  {
+                                      "nombre":  "Valparaíso",
+                                      "numerador":  494,
+                                      "cancelada":  62,
+                                      "denominador":  556,
+                                      "tasa":  88.85,
+                                      "flag":  null
+                                  },
+                                  {
+                                      "nombre":  "San Antonio",
+                                      "numerador":  146,
+                                      "cancelada":  16,
+                                      "denominador":  162,
+                                      "tasa":  90.12,
+                                      "flag":  null
+                                  }
+                              ],
+                 "nota":  "Cifras parciales del mes en curso (órdenes terminadas y canceladas acumuladas a la fecha de la última descarga)."
+             },
+    "backlog":  {
+                    "cierre":  "19-10-2026",
+                    "totalOrdenes":  1801,
+                    "meta":  1.5,
+                    "total":  {
+                                  "enProceso":  451,
+                                  "terminada":  802,
+                                  "cancelada":  548,
+                                  "ritmoDiario":  225,
+                                  "dias":  2
+                              },
+                    "agencias":  [
+                                     {
+                                         "nombre":  "Viña del Mar",
+                                         "enProceso":  262,
+                                         "terminada":  457,
+                                         "cancelada":  325,
+                                         "ritmoDiario":  130.33,
+                                         "dias":  2.01
+                                     },
+                                     {
+                                         "nombre":  "Valparaíso",
+                                         "enProceso":  132,
+                                         "terminada":  266,
+                                         "cancelada":  162,
+                                         "ritmoDiario":  71.33,
+                                         "dias":  1.85
+                                     },
+                                     {
+                                         "nombre":  "San Antonio",
+                                         "enProceso":  57,
+                                         "terminada":  79,
+                                         "cancelada":  61,
+                                         "ritmoDiario":  23.33,
+                                         "dias":  2.44
+                                     }
+                                 ],
+                    "estado":  [
+                                   {
+                                       "nombre":  "Terminada",
+                                       "valor":  802,
+                                       "color":  "var(--good)"
+                                   },
+                                   {
+                                       "nombre":  "En Proceso",
+                                       "valor":  451,
+                                       "color":  "var(--brand-blue-2)"
+                                   },
+                                   {
+                                       "nombre":  "Cancelada",
+                                       "valor":  548,
+                                       "color":  "var(--critical)"
+                                   }
+                               ],
+                    "areaActivo":  [
+                                       {
+                                           "nombre":  "Fuera de PGU",
+                                           "valor":  380,
+                                           "color":  "var(--warning)"
+                                       },
+                                       {
+                                           "nombre":  "PGU (nuestra área)",
+                                           "valor":  71,
+                                           "color":  "var(--brand-blue-2)"
+                                       }
+                                   ],
+                    "trend":  [
+                                  {
+                                      "f":  "01-10",
+                                      "v":  650
+                                  },
+                                  {
+                                      "f":  "05-10",
+                                      "v":  574
+                                  },
+                                  {
+                                      "f":  "06-10",
+                                      "v":  538
+                                  },
+                                  {
+                                      "f":  "07-10",
+                                      "v":  579
+                                  },
+                                  {
+                                      "f":  "08-10",
+                                      "v":  574
+                                  },
+                                  {
+                                      "f":  "09-10",
+                                      "v":  568
+                                  },
+                                  {
+                                      "f":  "10-10",
+                                      "v":  548
+                                  },
+                                  {
+                                      "f":  "13-10",
+                                      "v":  532
+                                  },
+                                  {
+                                      "f":  "14-10",
+                                      "v":  559
+                                  },
+                                  {
+                                      "f":  "15-10",
+                                      "v":  522
+                                  },
+                                  {
+                                      "f":  "16-10",
+                                      "v":  517
+                                  },
+                                  {
+                                      "f":  "17-10",
+                                      "v":  444
+                                  },
+                                  {
+                                      "f":  "19-10",
+                                      "v":  451
+                                  }
+                              ]
+                },
+    "produccion":  {
+                       "totalFilas":  4363,
+                       "baremoTotal":  4962.17,
+                       "tecnicos":  56,
+                       "completados":  2839,
+                       "instala":  2642,
+                       "repara":  1721,
+                       "nota":  "Cifras parciales al 18-10. Promedio de \u003cb\u003e49,47 técnicos activos por día\u003c/b\u003e excluyendo domingos (15 días hábiles con datos); 44,29 si se cuentan los 17 días (faltan 11-10). El máximo en un solo día fue 55 técnicos, sobre un total de 56 técnicos distintos en lo que va de octubre.",
+                       "topTecnicos":  [
+                                           {
+                                               "nombre":  "Patricio Delano Schwaiger",
+                                               "valor":  140.62
+                                           },
+                                           {
+                                               "nombre":  "Cristian Vásquez Muñoz",
+                                               "valor":  128.95
+                                           },
+                                           {
+                                               "nombre":  "Santiago Emilio Ángel Arias",
+                                               "valor":  127.17
+                                           },
+                                           {
+                                               "nombre":  "Carlos Hernán Muñoz Matus",
+                                               "valor":  124.97
+                                           },
+                                           {
+                                               "nombre":  "Jorge Jorquera Flores",
+                                               "valor":  124.37
+                                           },
+                                           {
+                                               "nombre":  "Alejandro Lagos González",
+                                               "valor":  123.34
+                                           },
+                                           {
+                                               "nombre":  "Esteban David Ortiz Figueroa",
+                                               "valor":  111.57
+                                           },
+                                           {
+                                               "nombre":  "Pedro Concha Jorquera",
+                                               "valor":  108.64
+                                           },
+                                           {
+                                               "nombre":  "Sebastián Sánchez Cayuqueo",
+                                               "valor":  107.87
+                                           },
+                                           {
+                                               "nombre":  "Daniel Ramírez Torres",
+                                               "valor":  105.34
+                                           }
+                                       ],
+                       "supervisores":  [
+                                            {
+                                                "nombre":  "Julio Pinto Herrera",
+                                                "valor":  1778.98
+                                            },
+                                            {
+                                                "nombre":  "Juan Carlos España Guerrero",
+                                                "valor":  1658.79
+                                            },
+                                            {
+                                                "nombre":  "Ramón Vargas Fontecha",
+                                                "valor":  1524.4
+                                            }
+                                        ],
+                       "quiebres":  {
+                                        "total":  1261,
+                                        "totalFilas":  4363,
+                                        "comercialPct":  "80,6%",
+                                        "nota1":  "Un quiebre no siempre es responsabilidad del técnico: el 80,6% son de origen \u003cb\u003ecomercial\u003c/b\u003e (cliente no cumple cita, casa cerrada, desistimiento), 11,9% \u003cb\u003etécnico\u003c/b\u003e y 7,5% sin clasificar. Este ranking cuenta todos los quiebres registrados a nombre del técnico, sin distinguir causa.",
+                                        "nota2":  "Los quiebres del período se reparten entre \u003cb\u003e56 técnicos distintos\u003c/b\u003e (todos los técnicos activos hasta ahora en octubre); este Top 5 (184 quiebres) es solo una porción del total (1.261), no el universo completo — por eso no debe leerse como \"estos 5 concentran todos los quiebres\", sino como los que más registran dentro del grupo completo. Hay empate en el 5.º lugar con 34 quiebres (Muñoz Matus y Díaz Núñez). El orden entre ellos es indicativo mientras el mes siga en curso.",
+                                        "causas":  [
+                                                       {
+                                                           "codigo":  "Q11",
+                                                           "nombre":  "Cliente no cumplió cita",
+                                                           "valor":  359
+                                                       },
+                                                       {
+                                                           "codigo":  "918",
+                                                           "nombre":  "Casa cerrada, sin contacto cliente",
+                                                           "valor":  322
+                                                       },
+                                                       {
+                                                           "codigo":  "Q15",
+                                                           "nombre":  "Cliente posterga instalación",
+                                                           "valor":  134
+                                                       },
+                                                       {
+                                                           "codigo":  "Q46",
+                                                           "nombre":  "Cliente desea producto en otra dirección",
+                                                           "valor":  94
+                                                       },
+                                                       {
+                                                           "codigo":  "Q07",
+                                                           "nombre":  "Cliente desiste por razones personales",
+                                                           "valor":  40
+                                                       }
+                                                   ],
+                                        "tecnicos":  [
+                                                         {
+                                                             "nombre":  "Jair Jesús Valencia Díaz",
+                                                             "valor":  42
+                                                         },
+                                                         {
+                                                             "nombre":  "Esteban David Ortiz Figueroa",
+                                                             "valor":  37
+                                                         },
+                                                         {
+                                                             "nombre":  "Henry Muriel Díaz Torrijo",
+                                                             "valor":  36
+                                                         },
+                                                         {
+                                                             "nombre":  "Daniel Alexander Ramírez Torres",
+                                                             "valor":  35
+                                                         },
+                                                         {
+                                                             "nombre":  "Carlos Hernán Muñoz Matus",
+                                                             "valor":  34
+                                                         }
+                                                     ]
+                                    }
+                   }
 };
 
 
@@ -1136,6 +1504,29 @@ function initNav(){
     });
   }
 
+  const updBtn = document.getElementById('updBtn');
+  const updOv = document.getElementById('updOverlay');
+  const updMsg = document.getElementById('updMsg');
+  function updMostrar(txt){ updMsg.textContent = txt; updMsg.hidden = !txt; }
+  function updAbrir(){ document.getElementById('updGenerado').textContent = (PERIODO.generado || '—'); updMostrar(''); updOv.hidden = false; }
+  function updCerrar(){ updOv.hidden = true; }
+  if (updBtn) {
+    updBtn.addEventListener('click', updAbrir);
+    document.getElementById('updCerrar').addEventListener('click', updCerrar);
+    updOv.addEventListener('click', e => { if (e.target === updOv) updCerrar(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') updCerrar(); });
+    document.getElementById('updReload').addEventListener('click', () => {
+      window.location.replace(window.location.pathname + '?v=' + Date.now());
+    });
+    document.getElementById('updPc').addEventListener('click', () => {
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        updMostrar('Esta opción solo está disponible desde el PC con Windows. En el celular usa "Ver la última versión publicada".');
+        return;
+      }
+      updMostrar('Abriendo el actualizador… si el navegador pregunta, permite abrir "Actualizar Cierre". Si no pasa nada, ejecuta una vez Instalar_Boton_Actualizar.bat (carpeta Cierre_Mensual). Cuando termine (1–3 min en publicarse), pulsa "Ver la última versión publicada".');
+      window.location.href = 'cierreelecnor://actualizar';
+    });
+  }
   const toggle = document.getElementById('themeToggle');
   try {
     const saved = localStorage.getItem('cierre-agosto-theme');
@@ -1154,6 +1545,7 @@ function aplicarPeriodo(){
   const P = PERIODO;
   document.title = P.titulo + (P.historico ? ' (Histórico)' : '');
   document.getElementById('hTitulo').textContent = P.titulo;
+  if (P.historico) { const ub = document.getElementById('updBtn'); if (ub) ub.hidden = true; }
   document.getElementById('hEyebrow').textContent = 'Informe ejecutivo · Gerencia Norte' + (P.historico ? ' · Archivo histórico (cerrado)' : (P.parcial ? ' · Mes en curso' : ''));
   document.getElementById('hRango').textContent = P.rango;
   document.getElementById('hGenerado').textContent = P.generado;

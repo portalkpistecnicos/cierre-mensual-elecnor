@@ -136,7 +136,28 @@
   }
   .month-select:hover{background-color:rgba(255,255,255,.16);}
   .month-select option{color:#0F2843;background:#fff;}
-  .theme-toggle:focus-visible, button:focus-visible, select:focus-visible, .navpill:focus-visible{
+  .refresh-btn{
+    flex:none; width:36px;height:36px;border-radius:50%;
+    border:1px solid rgba(255,255,255,.35); background:rgba(255,255,255,.08);
+    color:#fff;cursor:pointer;font-size:18px;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .refresh-btn:hover{background-color:rgba(255,255,255,.16);}
+  .refresh-btn[hidden]{display:none;}
+  .upd-overlay{position:fixed;inset:0;background:rgba(8,22,39,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;}
+  .upd-overlay[hidden]{display:none;}
+  .upd-card{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);width:100%;max-width:420px;padding:20px;}
+  .upd-card h2{font-size:17px;font-weight:800;margin-bottom:2px;}
+  .upd-sub{font-size:12.5px;color:var(--text-2);margin-bottom:14px;}
+  .upd-btn{display:block;width:100%;text-align:center;font:700 14px "Public Sans",sans-serif;padding:11px 14px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--brand-blue);background:transparent;color:var(--brand-blue-2);}
+  .upd-btn.primary{background:var(--brand-blue);color:#fff;}
+  .upd-help{font-size:12px;color:var(--text-2);margin:6px 2px 14px;line-height:1.4;}
+  .upd-msg{font-size:12.5px;background:var(--accent-soft);color:#7A3E00;border-radius:8px;padding:9px 11px;margin:2px 0 12px;line-height:1.4;}
+  .upd-close{display:block;margin:0 auto;background:none;border:none;color:var(--text-2);font:600 13px "Public Sans",sans-serif;cursor:pointer;padding:6px 10px;}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .upd-msg{color:#FFD9AE;background:rgba(244,124,2,.18);} }
+  :root[data-theme="dark"] .upd-msg{color:#FFD9AE;background:rgba(244,124,2,.18);}
+  .theme-toggle:focus-visible, .refresh-btn:focus-visible, button:focus-visible, select:focus-visible, .navpill:focus-visible{
     outline:2px solid var(--accent); outline-offset:2px;
   }
 
@@ -334,6 +355,7 @@
       <h1 id="hTitulo"></h1>
     </div>
     <select class="month-select" id="monthSelect" title="Cambiar de mes" aria-label="Cambiar de mes"></select>
+    <button class="refresh-btn" id="updBtn" title="Actualizar datos" aria-label="Actualizar datos">&#8635;</button>
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema" aria-label="Cambiar tema">&#9789;</button>
   </div>
   <nav class="subnav"><div class="subnav-inner" id="subnav">
@@ -569,6 +591,18 @@
   </div>
 </div>
 
+<div class="upd-overlay" id="updOverlay" hidden>
+  <div class="upd-card" role="dialog" aria-modal="true" aria-labelledby="updTitulo">
+    <h2 id="updTitulo">Actualizar datos</h2>
+    <div class="upd-sub">Versi&oacute;n publicada: <b id="updGenerado"></b></div>
+    <button class="upd-btn primary" id="updPc">Recalcular desde este PC</button>
+    <p class="upd-help">Abre el actualizador del equipo: recalcula los 7 KPI y publica en GitHub (demora unos minutos). Solo funciona en el PC con Windows donde se instal&oacute; el bot&oacute;n.</p>
+    <button class="upd-btn" id="updReload">Ver la &uacute;ltima versi&oacute;n publicada</button>
+    <p class="upd-help">Vuelve a cargar esta p&aacute;gina desde GitHub. Es la opci&oacute;n para celular.</p>
+    <div class="upd-msg" id="updMsg" hidden></div>
+    <button class="upd-close" id="updCerrar">Cerrar</button>
+  </div>
+</div>
 <script>
 const PERIODO = {
   slug: "septiembre-2026",
@@ -1140,6 +1174,29 @@ function initNav(){
     });
   }
 
+  const updBtn = document.getElementById('updBtn');
+  const updOv = document.getElementById('updOverlay');
+  const updMsg = document.getElementById('updMsg');
+  function updMostrar(txt){ updMsg.textContent = txt; updMsg.hidden = !txt; }
+  function updAbrir(){ document.getElementById('updGenerado').textContent = (PERIODO.generado || '—'); updMostrar(''); updOv.hidden = false; }
+  function updCerrar(){ updOv.hidden = true; }
+  if (updBtn) {
+    updBtn.addEventListener('click', updAbrir);
+    document.getElementById('updCerrar').addEventListener('click', updCerrar);
+    updOv.addEventListener('click', e => { if (e.target === updOv) updCerrar(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') updCerrar(); });
+    document.getElementById('updReload').addEventListener('click', () => {
+      window.location.replace(window.location.pathname + '?v=' + Date.now());
+    });
+    document.getElementById('updPc').addEventListener('click', () => {
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        updMostrar('Esta opción solo está disponible desde el PC con Windows. En el celular usa "Ver la última versión publicada".');
+        return;
+      }
+      updMostrar('Abriendo el actualizador… si el navegador pregunta, permite abrir "Actualizar Cierre". Si no pasa nada, ejecuta una vez Instalar_Boton_Actualizar.bat (carpeta Cierre_Mensual). Cuando termine (1–3 min en publicarse), pulsa "Ver la última versión publicada".');
+      window.location.href = 'cierreelecnor://actualizar';
+    });
+  }
   const toggle = document.getElementById('themeToggle');
   try {
     const saved = localStorage.getItem('cierre-agosto-theme');
@@ -1158,6 +1215,7 @@ function aplicarPeriodo(){
   const P = PERIODO;
   document.title = P.titulo + (P.historico ? ' (Histórico)' : '');
   document.getElementById('hTitulo').textContent = P.titulo;
+  if (P.historico) { const ub = document.getElementById('updBtn'); if (ub) ub.hidden = true; }
   document.getElementById('hEyebrow').textContent = 'Informe ejecutivo · Gerencia Norte' + (P.historico ? ' · Archivo histórico (cerrado)' : (P.parcial ? ' · Mes en curso' : ''));
   document.getElementById('hRango').textContent = P.rango;
   document.getElementById('hGenerado').textContent = P.generado;
